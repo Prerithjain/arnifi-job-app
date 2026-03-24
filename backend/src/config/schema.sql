@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(10) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id SERIAL PRIMARY KEY,
+  company_name VARCHAR(150) NOT NULL,
+  position VARCHAR(150) NOT NULL,
+  type VARCHAR(20) CHECK (type IN ('Full Time', 'Part Time')),
+  location VARCHAR(100) NOT NULL,
+  admin_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS applications (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
+  applied_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, job_id)
+);

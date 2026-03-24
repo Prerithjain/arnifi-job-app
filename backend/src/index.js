@@ -19,7 +19,7 @@ app.use(express.json());
 
 // routes
 app.use('/api/auth', authRoutes);
-app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', jobRoutes);
 
 // test route
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

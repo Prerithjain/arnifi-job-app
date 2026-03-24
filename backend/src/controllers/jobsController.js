@@ -50,6 +50,7 @@ const updateJob = async (req, res) => {
   }
 };
 
+
 const deleteJob = async (req, res) => {
   const { id } = req.params;
   try {
@@ -64,5 +65,36 @@ const deleteJob = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+const applyToJob = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const job = await pool.query('SELECT id FROM jobs WHERE id=$1', [id]);
+    if (!job.rows.length) return res.status(404).json({ error: 'Job not found' });
 
-module.exports = { getAllJobs, createJob, updateJob, deleteJob };
+    await pool.query(
+      'INSERT INTO applications (user_id, job_id) VALUES ($1,$2)',
+      [req.user.id, id]
+    );
+    res.status(201).json({ message: 'Applied successfully' });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Already applied' });
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getMyApplications = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT j.*, a.applied_at 
+      FROM applications a 
+      JOIN jobs j ON a.job_id = j.id 
+      WHERE a.user_id = $1 
+      ORDER BY a.applied_at DESC
+    `, [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { getAllJobs, createJob, updateJob, deleteJob, applyToJob, getMyApplications };
